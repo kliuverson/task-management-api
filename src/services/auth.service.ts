@@ -11,7 +11,11 @@ import {
 } from '../persistence/user.repository';
 
 const SALT_ROUNDS = 10;
-
+/**
+ * Hash falso con el mismo costo que los reales. Se compara cuando el email no existe
+ * para que el login tarde parecido exista o no la cuenta.
+ */
+const DUMMY_HASH = bcrypt.hashSync('contraseña-que-nadie-usa', SALT_ROUNDS);
 export type PublicUser = Omit<User, 'password_hash'>;
 
 // Quita el hash antes de devolver un usuario al cliente. 
@@ -55,7 +59,8 @@ export async function login(
   password: string,
 ): Promise<{ token: string; user: PublicUser }> {
   const user = await findUserByEmail(email.trim().toLowerCase());
-  const valid = user ? await bcrypt.compare(password, user.password_hash) : false;
+// bcrypt.compare se ejecuta siempre; sin usuario, se compara contra un hash falso.
+  const valid = await bcrypt.compare(password, user ? user.password_hash : DUMMY_HASH);
 
   if (!user || !valid) {
     throw new AuthenticationError('Credenciales inválidas');
