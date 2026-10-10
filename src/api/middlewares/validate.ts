@@ -1,17 +1,20 @@
 import Ajv, { AnySchema } from 'ajv';
 import addFormats from 'ajv-formats';
-import { RequestHandler } from 'express';
+import { Request, RequestHandler } from 'express';
 import { ValidationError } from '../../errors/AppError';
 
-const ajv = new Ajv({ allErrors: true });
+const ajv = new Ajv({ allErrors: true, allowUnionTypes: true });
 addFormats(ajv);
 
-// Crea un middleware que valida req.body contra un esquema JSON. 
-export function validateBody(schema: AnySchema): RequestHandler {
+// Compila el esquema una sola vez y valida la parte de la petición indicada. 
+function buildValidator(
+  schema: AnySchema,
+  getData: (req: Request) => unknown,
+): RequestHandler {
   const validate = ajv.compile(schema);
 
   return (req, _res, next) => {
-    if (!validate(req.body)) {
+    if (!validate(getData(req))) {
       const details = (validate.errors ?? []).map((e) => ({
         campo:
           e.instancePath.slice(1) ||
@@ -24,3 +27,11 @@ export function validateBody(schema: AnySchema): RequestHandler {
     next();
   };
 }
+
+// Valida req.body contra un esquema JSON. 
+export const validateBody = (schema: AnySchema): RequestHandler =>
+  buildValidator(schema, (req) => req.body);
+
+// Valida req.params (por ejemplo, el :id de la ruta) contra un esquema JSON. 
+export const validateParams = (schema: AnySchema): RequestHandler =>
+  buildValidator(schema, (req) => req.params);
