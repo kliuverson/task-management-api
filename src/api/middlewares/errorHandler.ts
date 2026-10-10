@@ -1,12 +1,14 @@
 import { ErrorRequestHandler, RequestHandler } from 'express';
 import { AppError, NotFoundError, ValidationError } from '../../errors/AppError';
 
-// Convierte cualquier ruta inexistente en un NotFoundError.
+/** Convierte cualquier ruta inexistente en un NotFoundError (404). */
 export const notFoundHandler: RequestHandler = (req, _res, next) => {
   next(new NotFoundError(`Ruta ${req.method} ${req.originalUrl} no encontrada`));
 };
-
-//Responde todos los errores con el mismo formato JSON.
+/**
+ * Manejador central de errores: los AppError responden con su código HTTP y un JSON
+ * uniforme; cualquier otro error se registra y responde 500 genérico, sin detalles internos.
+ */
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof AppError) {
     res.status(err.statusCode).json({

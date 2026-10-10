@@ -1,7 +1,15 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Carga y valida las variables de entorno una sola vez (Singleton). 
+/**
+ * Configuración de la aplicación (Singleton): carga el .env una sola vez
+ * y falla al arrancar si falta una variable obligatoria.
+ */
+
+
+
+
+
 class Config {
   private static instance: Config;
 
@@ -30,17 +38,18 @@ class Config {
       database: Config.required('DB_NAME'),
     };
   }
-
+  /** Devuelve la única instancia, creándola la primera vez. */
   static getInstance(): Config {
     if (!Config.instance) Config.instance = new Config();
     return Config.instance;
   }
-
+  
+/** Lee una variable obligatoria o lanza un error que nombra la variable faltante. */
   private static required(name: string): string {
     const value = process.env[name];
     if (!value) throw new Error(`Falta la variable de entorno: ${name}`);
     return value;
   }
 }
-
+/** Instancia única de configuración, disponible para toda la aplicación. */
 export const config = Config.getInstance();
