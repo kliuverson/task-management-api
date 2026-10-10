@@ -1,6 +1,6 @@
 const ESTADOS = ['pendiente', 'en curso', 'completada'];
 
-// Esquema del cuerpo de POST /tasks. 
+/** Esquema del cuerpo de POST /tasks. */
 export const createTaskSchema = {
   type: 'object',
   properties: {
@@ -13,7 +13,7 @@ export const createTaskSchema = {
   additionalProperties: false,
 } as const;
 
-// Esquema del cuerpo de PUT /tasks/:id (actualización parcial).
+/** Esquema del cuerpo de PUT /tasks/:id (actualización parcial). */
 export const updateTaskSchema = {
   type: 'object',
   properties: {
@@ -26,7 +26,7 @@ export const updateTaskSchema = {
   additionalProperties: false,
 } as const;
 
-// Esquema del parámetro :id de las rutas /tasks/:id. 
+/** Esquema del parámetro :id de las rutas /tasks/:id. */
 export const taskIdParamSchema = {
   type: 'object',
   properties: {

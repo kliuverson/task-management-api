@@ -18,13 +18,16 @@ const SALT_ROUNDS = 10;
 const DUMMY_HASH = bcrypt.hashSync('contraseña-que-nadie-usa', SALT_ROUNDS);
 export type PublicUser = Omit<User, 'password_hash'>;
 
-// Quita el hash antes de devolver un usuario al cliente. 
+/**
+ * Quita el hash antes de devolver un usuario al cliente.
+ */
 function toPublicUser({ password_hash, ...rest }: User): PublicUser {
   return rest;
 }
 
-// Registra un usuario nuevo guardando solo el hash de su contraseña.
-/** Registra un usuario nuevo guardando solo el hash de su contraseña. */
+/**
+ * Registra un usuario nuevo guardando solo el hash de su contraseña.
+ */
 export async function register(
   nombre: string,
   email: string,
@@ -32,7 +35,9 @@ export async function register(
 ): Promise<PublicUser> {
   const normalizedEmail = email.trim().toLowerCase();
 
-  // Comprobación previa: evita calcular el hash en el caso común de email repetido.
+  /**
+   * Comprobación previa: evita calcular el hash en el caso común de email repetido.
+   */
   if (await findUserByEmail(normalizedEmail)) {
     throw new ConflictError('El email ya está registrado');
   }
@@ -43,8 +48,10 @@ export async function register(
   try {
     user = await createUser(nombre.trim(), normalizedEmail, passwordHash);
   } catch (err) {
-    // Dos registros simultáneos pueden pasar la comprobación previa;
-    // la restricción UNIQUE de la base es la que decide.
+    /**
+     * Dos registros simultáneos pueden pasar la comprobación previa;
+     * la restricción UNIQUE de la base es la que decide.
+     */
     if (isUniqueViolation(err, EMAIL_UNIQUE_CONSTRAINT)) {
       throw new ConflictError('El email ya está registrado');
     }
@@ -53,13 +60,15 @@ export async function register(
 
   return toPublicUser(user);
 }
-// Verifica credenciales y devuelve un JWT firmado. 
+/**
+ * Verifica credenciales y devuelve un JWT firmado.
+ */
 export async function login(
   email: string,
   password: string,
 ): Promise<{ token: string; user: PublicUser }> {
   const user = await findUserByEmail(email.trim().toLowerCase());
-// bcrypt.compare se ejecuta siempre; sin usuario, se compara contra un hash falso.
+/** bcrypt.compare se ejecuta siempre; sin usuario, se compara contra un hash falso. */
   const valid = await bcrypt.compare(password, user ? user.password_hash : DUMMY_HASH);
 
   if (!user || !valid) {

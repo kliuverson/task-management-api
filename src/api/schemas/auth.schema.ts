@@ -1,4 +1,4 @@
-// Esquema del cuerpo de POST /auth/register.
+/** Esquema del cuerpo de POST /auth/register. */
 export const registerSchema = {
   type: 'object',
   properties: {
@@ -11,7 +11,7 @@ export const registerSchema = {
   additionalProperties: false,
 } as const;
 
-// Esquema del cuerpo de POST /auth/login. 
+/** Esquema del cuerpo de POST /auth/login. */
 export const loginSchema = {
   type: 'object',
   properties: {
