@@ -2,7 +2,13 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env';
 import { AuthenticationError, ConflictError } from '../errors/AppError';
-import { createUser, findUserByEmail, User } from '../persistence/user.repository';
+import {
+  createUser,
+  EMAIL_UNIQUE_CONSTRAINT,
+  findUserByEmail,
+  isUniqueViolation,
+  User,
+} from '../persistence/user.repository';
 
 const SALT_ROUNDS = 10;
 
@@ -14,6 +20,7 @@ function toPublicUser({ password_hash, ...rest }: User): PublicUser {
 }
 
 // Registra un usuario nuevo guardando solo el hash de su contraseña.
+/** Registra un usuario nuevo guardando solo el hash de su contraseña. */
 export async function register(
   nombre: string,
   email: string,
@@ -21,15 +28,27 @@ export async function register(
 ): Promise<PublicUser> {
   const normalizedEmail = email.trim().toLowerCase();
 
+  // Comprobación previa: evita calcular el hash en el caso común de email repetido.
   if (await findUserByEmail(normalizedEmail)) {
     throw new ConflictError('El email ya está registrado');
   }
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-  const user = await createUser(nombre.trim(), normalizedEmail, passwordHash);
+
+  let user: User;
+  try {
+    user = await createUser(nombre.trim(), normalizedEmail, passwordHash);
+  } catch (err) {
+    // Dos registros simultáneos pueden pasar la comprobación previa;
+    // la restricción UNIQUE de la base es la que decide.
+    if (isUniqueViolation(err, EMAIL_UNIQUE_CONSTRAINT)) {
+      throw new ConflictError('El email ya está registrado');
+    }
+    throw err;
+  }
+
   return toPublicUser(user);
 }
-
 // Verifica credenciales y devuelve un JWT firmado. 
 export async function login(
   email: string,

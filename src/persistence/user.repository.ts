@@ -29,3 +29,11 @@ export async function findUserByEmail(email: string): Promise<User | null> {
   );
   return rows[0] ?? null;
 }
+/** Nombre de la restricción UNIQUE del email, definida en schema.sql. */
+export const EMAIL_UNIQUE_CONSTRAINT = 'users_email_key';
+
+/** Indica si un error de pg es una violación de unicidad (23505) de la restricción dada. */
+export function isUniqueViolation(err: unknown, constraint: string): boolean {
+  const e = err as { code?: string; constraint?: string } | null;
+  return e?.code === '23505' && e?.constraint === constraint;
+}
