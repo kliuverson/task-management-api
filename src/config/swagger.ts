@@ -1,6 +1,9 @@
 import path from 'path';
 import swaggerJsdoc from 'swagger-jsdoc';
 
+const routesGlob = path
+  .join(__dirname, '../api/routes/*.{ts,js}')
+  .replace(/\\/g, '/');
 /** Especificación OpenAPI: datos generales, esquemas reutilizables y seguridad. */
 export const swaggerSpec = swaggerJsdoc({
   definition: {
@@ -93,5 +96,5 @@ export const swaggerSpec = swaggerJsdoc({
     },
   },
   // Lee los comentarios @openapi de las rutas (.ts en desarrollo, .js tras compilar).
-  apis: [path.join(__dirname, '../api/routes/*.{ts,js}')],
+    apis: [routesGlob],
 });
