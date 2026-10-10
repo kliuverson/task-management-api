@@ -1,7 +1,15 @@
+import { app } from './app';
 import { config } from './config/env';
 import { checkConnection } from './persistence/db';
 
-checkConnection()
-  .then(() => console.log(`Conectado a ${config.db.database}`))
-  .catch((err) => console.error('Error de conexión:', err.message))
-  .finally(() => process.exit());
+async function bootstrap(): Promise<void> {
+  await checkConnection();
+  app.listen(config.port, () => {
+    console.log(`API escuchando en http://localhost:${config.port}`);
+  });
+}
+
+bootstrap().catch((err) => {
+  console.error('No se pudo iniciar la API:', err);
+  process.exit(1);
+});
