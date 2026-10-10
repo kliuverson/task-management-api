@@ -5,8 +5,10 @@ import { ValidationError } from '../../errors/AppError';
 
 const ajv = new Ajv({ allErrors: true, allowUnionTypes: true });
 addFormats(ajv);
-
-// Compila el esquema una sola vez y valida la parte de la petición indicada. 
+/**
+ * Compila el esquema una sola vez y devuelve un middleware que valida la parte de la
+ * petición indicada. Si no cumple, pasa un ValidationError con el detalle por campo.
+ */
 function buildValidator(
   schema: AnySchema,
   getData: (req: Request) => unknown,
@@ -28,10 +30,12 @@ function buildValidator(
   };
 }
 
-// Valida req.body contra un esquema JSON. 
+/** Valida `req.body` contra un esquema JSON. */
 export const validateBody = (schema: AnySchema): RequestHandler =>
   buildValidator(schema, (req) => req.body);
 
-// Valida req.params (por ejemplo, el :id de la ruta) contra un esquema JSON. 
+/**
+ * Valida `req.params` (por ejemplo, el :id de la ruta) contra un esquema JSON.
+ */
 export const validateParams = (schema: AnySchema): RequestHandler =>
   buildValidator(schema, (req) => req.params);

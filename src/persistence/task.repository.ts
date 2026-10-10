@@ -1,7 +1,8 @@
 import { pool } from './db';
+/** Estados permitidos de una tarea; la base los vuelve a comprobar con un CHECK. */
 
 export type TaskStatus = 'pendiente' | 'en curso' | 'completada';
-
+/** Fila de la tabla `tasks`. */
 export interface Task {
   id: string;
   user_id: string;
@@ -11,16 +12,17 @@ export interface Task {
   estado: TaskStatus;
   created_at: Date;
 }
-
+/** Datos aceptados al crear una tarea. */
 export interface TaskInput {
   titulo: string;
   descripcion?: string | null;
   fecha_vencimiento?: string | null;
   estado?: TaskStatus;
 }
+/** Cambios parciales de una tarea: solo se modifican los campos presentes. */
 export type TaskUpdate = Partial<TaskInput>;
  
-//Crea una tarea asociada al usuario autenticado. 
+/**Crea una tarea asociada al usuario autenticado. */
 export async function createTask(userId: string, input: TaskInput): Promise<Task> {
   const { rows } = await pool.query<Task>(
     `INSERT INTO tasks (user_id, titulo, descripcion, fecha_vencimiento, estado)
@@ -37,7 +39,7 @@ export async function createTask(userId: string, input: TaskInput): Promise<Task
   return rows[0];
 }
 
-//Lista solo las tareas del usuario. 
+/** Lista solo las tareas del usuario. */
 export async function findTasksByUser(userId: string): Promise<Task[]> {
   const { rows } = await pool.query<Task>(
     'SELECT * FROM tasks WHERE user_id = $1 ORDER BY created_at DESC',
@@ -46,7 +48,7 @@ export async function findTasksByUser(userId: string): Promise<Task[]> {
   return rows;
 }
 
-// Busca una tarea por id, solo si pertenece al usuario. 
+/** Busca una tarea por id, solo si pertenece al usuario. */
 export async function findTaskById(id: string, userId: string): Promise<Task | null> {
   const { rows } = await pool.query<Task>(
     'SELECT * FROM tasks WHERE id = $1 AND user_id = $2',
@@ -55,7 +57,7 @@ export async function findTaskById(id: string, userId: string): Promise<Task | n
   return rows[0] ?? null;
 }
 
-// Elimina una tarea del usuario; devuelve false si no existe o no es suya. 
+/** Elimina una tarea del usuario; devuelve false si no existe o no es suya. */
 export async function deleteTask(id: string, userId: string): Promise<boolean> {
   const result = await pool.query(
     'DELETE FROM tasks WHERE id = $1 AND user_id = $2',
@@ -64,11 +66,11 @@ export async function deleteTask(id: string, userId: string): Promise<boolean> {
   return (result.rowCount ?? 0) > 0;
 }
 
-// Campos que se pueden actualizar mediante PATCH.
+/** Campos que se pueden actualizar mediante PATCH. */
 const UPDATABLE_FIELDS = ['titulo', 'descripcion', 'fecha_vencimiento', 'estado'] as const;
 
- //Actualiza solo los campos recibidos (undefined = no tocar).
- //Devuelve null si la tarea no existe o no pertenece al usuario.
+ /**Actualiza solo los campos recibidos (undefined = no tocar).*/
+ /**Devuelve null si la tarea no existe o no pertenece al usuario.*/
 
 export async function updateTask(
   id: string,

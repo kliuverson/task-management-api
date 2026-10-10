@@ -1,4 +1,5 @@
 import { pool } from './db';
+/** Fila de la tabla `users`. Incluye el hash, así que nunca debe salir hacia el cliente. */
 
 export interface User {
   id: string;
@@ -8,7 +9,7 @@ export interface User {
   created_at: Date;
 }
 
-// Inserta un usuario y devuelve el registro creado. 
+/**  Inserta un usuario y devuelve el registro creado. */
 export async function createUser(
   nombre: string,
   email: string,
@@ -21,7 +22,7 @@ export async function createUser(
   return rows[0];
 }
 
-// Busca un usuario por email; devuelve null si no existe. 
+/** Busca un usuario por email; devuelve null si no existe. */
 export async function findUserByEmail(email: string): Promise<User | null> {
   const { rows } = await pool.query<User>(
     'SELECT * FROM users WHERE email = $1',
