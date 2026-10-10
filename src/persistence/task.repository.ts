@@ -18,7 +18,8 @@ export interface TaskInput {
   fecha_vencimiento?: string | null;
   estado?: TaskStatus;
 }
-
+export type TaskUpdate = Partial<TaskInput>;
+ 
 //Crea una tarea asociada al usuario autenticado. 
 export async function createTask(userId: string, input: TaskInput): Promise<Task> {
   const { rows } = await pool.query<Task>(
@@ -61,4 +62,39 @@ export async function deleteTask(id: string, userId: string): Promise<boolean> {
     [id, userId],
   );
   return (result.rowCount ?? 0) > 0;
+}
+
+// Campos que se pueden actualizar mediante PATCH.
+const UPDATABLE_FIELDS = ['titulo', 'descripcion', 'fecha_vencimiento', 'estado'] as const;
+
+ //Actualiza solo los campos recibidos (undefined = no tocar).
+ //Devuelve null si la tarea no existe o no pertenece al usuario.
+
+export async function updateTask(
+  id: string,
+  userId: string,
+  changes: TaskUpdate,
+): Promise<Task | null> {
+  const sets: string[] = [];
+  const values: unknown[] = [];
+
+  for (const field of UPDATABLE_FIELDS) {
+    if (changes[field] !== undefined) {
+      values.push(changes[field]);
+      sets.push(`${field} = $${values.length}`);
+    }
+  }
+
+  if (sets.length === 0) {
+    return findTaskById(id, userId);
+  }
+
+  values.push(id, userId);
+  const { rows } = await pool.query<Task>(
+    `UPDATE tasks SET ${sets.join(', ')}
+     WHERE id = $${values.length - 1} AND user_id = $${values.length}
+     RETURNING *`,
+    values,
+  );
+  return rows[0] ?? null;
 }
