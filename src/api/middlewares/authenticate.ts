@@ -3,7 +3,11 @@ import jwt from 'jsonwebtoken';
 import { config } from '../../config/env';
 import { AuthenticationError } from '../../errors/AppError';
 
-// Exige un JWT válido en Authorization: Bearer <token> y expone req.userId. 
+/**
+ * Protege rutas: exige `Authorization: Bearer <token>`, verifica la firma y la
+ * expiración del JWT y deja el id del usuario en `req.userId`.
+ * Responde 401 si el token falta, es inválido o expiró.
+ */
 export const authenticate: RequestHandler = (req, _res, next) => {
   const header = req.headers.authorization;
 

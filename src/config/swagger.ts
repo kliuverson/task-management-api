@@ -1,5 +1,6 @@
 import path from 'path';
 import swaggerJsdoc from 'swagger-jsdoc';
+
 /** Patrón donde swagger-jsdoc busca los comentarios de las rutas, con barras normales para que funcione en Windows. */
 const routesGlob = path
   .join(__dirname, '../api/routes/*.{ts,js}')
